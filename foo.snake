@@ -1,0 +1,24 @@
+rule all:
+    input: 'output.txt'
+
+rule clean:
+    shell: 'rm input_* intermediate_* output.txt'
+
+rule merge:
+    input: dynamic('intermediate_{n}.txt')
+    output: 'output.txt'
+    shell: 'cat {input} > {output}'
+
+rule parallel:
+    input: 'input_{n,\d+}.txt'
+    output: 'intermediate_{n}.txt'
+    shell: 'cat {input} > {output} && echo processed >> {output}'
+
+rule split:
+    input: 'input.txt'
+    output: dynamic('input_{n}.txt')
+    run:
+        with open(input[0], 'r') as infile:
+            for n, line in enumerate(infile.readlines()):
+                with open('input_{}.txt'.format(n), 'w+') as outfile:
+                    outfile.write(line)
