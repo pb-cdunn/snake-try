@@ -12,7 +12,7 @@ rule merge:
 rule parallel:
     input: 'input_{n,\d+}.txt'
     output: 'intermediate_{n}.txt'
-    shell: 'cat {input} > {output} && echo processed >> {output}'
+    shell: 'cat {input} > {output} && sleep 1 && echo processed >> {output}'
 
 rule split:
     input: 'input.txt'

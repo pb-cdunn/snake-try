@@ -1,4 +1,4 @@
 all:
-	snakemake -j -s foo.snake
+	snakemake -j -prs foo.snake
 clean:
 	git clean -xdf .
