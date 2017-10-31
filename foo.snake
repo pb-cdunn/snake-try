@@ -15,7 +15,7 @@ rule parallel:
     shell: 'cat {input} > {output} && sleep 1 && echo processed >> {output}'
 
 rule split:
-    input: 'input.txt'
+    input: '../input.txt'
     output: dynamic('input_{n}.txt')
     run:
         with open(input[0], 'r') as infile:
