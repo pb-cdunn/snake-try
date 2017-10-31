@@ -1,10 +1,14 @@
 # -j --dryrun --summary --detailed-summary --list --list-target-rules
-# --latency-wait=20 --restart-times=2 --timestamp --rerun-incomplete --notemp --keep-shadow --stats=stats.json
-#  --runtime-provile=prof.out # not very useful
+# --latency-wait=20 --restart-times=2 --timestamp --rerun-incomplete --notemp --keep-shadow
+#  --stats=stats.json # useful!
+#  --runtime-provile=prof.out # not useful
+# --rerun-incomplete --cleanup-metadata # only if absolutely needed
 # --verbose --quiet --reason
-#
+EXTRA= --latency-wait=20 --restart-times=2 --notemp --keep-shadow
+VERBOSE= --reason --printshellcmds --stats=stats.json # --verbose
+
 all:
-	snakemake --reason --printshellcmds --stats=stats.json -s foo.snake
+	snakemake -j -T ${VERBOSE} ${EXTRA} -s foo.snake
 summary:
 	snakemake --detailed-summary -s foo.snake
 dry:

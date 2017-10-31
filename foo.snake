@@ -5,7 +5,7 @@ rule clean:
     shell: 'rm input_* intermediate_* output.txt'
 
 rule merge:
-    input: dynamic('intermediate_{n}.txt')
+    input: ancient(dynamic('intermediate_{n}.txt'))
     output: 'output.txt'
     shell: 'cat {input} > {output}'
 
