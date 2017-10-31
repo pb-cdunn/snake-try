@@ -18,4 +18,6 @@ dry:
 work:
 	mkdir -p $@
 clean:
+	rm -rf work/
+distclean:
 	git clean -xdf .
