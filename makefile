@@ -7,7 +7,7 @@
 #  --stats=stats.json # useful!
 #  --runtime-profile=prof.out # not useful
 EXTRA= --latency-wait=20 --restart-times=2 --notemp --keep-shadow
-VERBOSE= --reason --printshellcmds --stats=stats.json # --verbose
+VERBOSE= --reason --printshellcmds # --verbose
 
 all: | work
 	cd work; snakemake -j -T ${VERBOSE} ${EXTRA} -s ../foo.snake
