@@ -15,7 +15,7 @@ def assert_exists(fn):
 def symlink(name, target):
     msg = '{} -> {}'.format(name, target)
     assert not os.path.lexists(name), msg
-    print msg
+    #print msg
     os.symlink(target, name)
 
 def run(mapped_fn, fn_pattern):

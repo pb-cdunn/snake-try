@@ -1,13 +1,17 @@
 rule all:
-    input: 'output.txt'
+    input: 'output.json'
 
 rule clean:
     shell: 'rm input_* intermediate_* output.txt'
 
 rule merge:
     input: ancient(dynamic('intermediate_{n}.txt'))
-    output: 'output.txt'
-    shell: 'cat {input} > {output}'
+    output: 'output.json'
+    run:
+        fns = [str(i) for i in input]
+        ser = json.dumps(fns)
+        with open(output[0], 'w') as out:
+            out.write('{}\n'.format(ser))
 
 rule parallel:
     input: 'input_{n,\d+}.txt'
