@@ -27,11 +27,19 @@ rule merge:
 rule parallel:
     input: 'parallel_inputs/{key}/input_{key}.txt'
     output: 'parallel_outputs/{key}/intermediate_{key}.txt'
+    params:
+        reltopdir='../..'
     shell: '''
-#mkdir -p $(dirname {output})
-cat {input} > {output}
+set -vx
+outdir=$(dirname {output})
+#mkdir -p ${{outdir}}
+cd ${{outdir}}
+
+cat {params.reltopdir}/{input} > {params.reltopdir}/{output}
 sleep 1
-echo processed >> {output}
+echo processed >> {params.reltopdir}/{output}
+
+cd -
 '''
 
 rule split:
