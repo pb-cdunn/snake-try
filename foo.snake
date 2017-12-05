@@ -1,8 +1,13 @@
 rule all:
-    input: 'output.json'
+    input: 'mapped_outputs.json'
 
 rule clean:
     shell: 'rm input_* intermediate_* output.txt'
+
+rule map_outputs:
+    input: 'output.json'
+    output: 'mapped_outputs.json'
+    shell: '../dump_mapped_outputs.py --mapped={output} --unmapped={input} --fn-pattern="intermediate_{{n}}.txt"'
 
 rule merge:
     input: ancient(dynamic('intermediate_{n}.txt'))
@@ -19,11 +24,11 @@ rule parallel:
     shell: 'cat {input} > {output} && sleep 1 && echo processed >> {output}'
 
 rule split:
-    input: 'mapped.json'
+    input: 'mapped_inputs.json'
     output: dynamic('input_{n}.txt')
     shell: '../symlink_mapped.py --mapped={input} --fn-pattern="input_{{}}.txt"'
 
-rule map:
+rule map_inputs:
     input: '../input.txt'
-    output: 'mapped.json'
-    shell: '../dump_mapped.py --mapped={output} --input={input}'
+    output: 'mapped_inputs.json'
+    shell: '../dump_mapped_inputs.py --mapped={output} --input={input}'
