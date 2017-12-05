@@ -3,6 +3,8 @@ def snake_merge_dynamic(output_fn, input_fns, pattern):
         """
         re_dynamic = re.compile(pattern.replace('{key}', '(\S)'))
         outdir = os.path.normpath(os.path.dirname(output_fn))
+        if not os.path.isdir(outdir):
+            os.makedirs(outdir)
         mapped = dict()
         for fn in input_fns:
             mo = re_dynamic.search(fn)
@@ -14,14 +16,14 @@ def snake_merge_dynamic(output_fn, input_fns, pattern):
             out.write(ser)
 
 rule all:
-    input: 'mapped_outputs.json'
+    input: 'output/mapped_outputs.json'
 
 rule clean:
     shell: 'rm input_* intermediate_* output.txt'
 
 rule merge:
-    input: ancient(dynamic('intermediate_{key}.txt'))
-    output: 'mapped_outputs.json'
+    input: ancient(dynamic('parallel_outputs/{key}/intermediate_{key}.txt'))
+    output: 'output/mapped_outputs.json'
     run:
         snake_merge_dynamic(output[0], [str(i) for i in input], 'intermediate_{key}.txt')
 
