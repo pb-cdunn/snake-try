@@ -5,11 +5,11 @@ rule clean:
     shell: 'rm input_* intermediate_* output.txt'
 
 rule merge:
-    input: ancient(dynamic('intermediate_{n}.txt'))
+    input: ancient(dynamic('intermediate_{key}.txt'))
     output: 'mapped_outputs.json'
     run:
         outdir = os.path.normpath(os.path.dirname(output[0]))
-        re_dynamic = re.compile('intermediate_(\S).txt')
+        re_dynamic = re.compile('intermediate_{key}.txt'.replace('{key}', '(\S)'))
         fns = [str(i) for i in input]
         mapped = dict()
         for fn in fns:
@@ -22,13 +22,13 @@ rule merge:
             out.write('{}\n'.format(ser))
 
 rule parallel:
-    input: 'input_{n,\d+}.txt'
-    output: 'intermediate_{n}.txt'
+    input: 'input_{key}.txt'
+    output: 'intermediate_{key}.txt'
     shell: 'cat {input} > {output} && sleep 1 && echo processed >> {output}'
 
 rule split:
     input: 'mapped_inputs.json'
-    output: dynamic('input_{n}.txt')
+    output: dynamic('input_{key}.txt')
     shell: '../symlink_mapped.py --mapped={input} --fn-pattern="input_{{}}.txt"'
 
 rule map_inputs:
