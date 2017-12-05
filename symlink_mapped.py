@@ -12,6 +12,11 @@ def assert_exists(fn):
     if not os.path.isfile(fn):
         raise Exception('Does not exist: {!r}'.format(fn))
 
+def mkdir(dirname):
+    if not os.path.isdir(dirname):
+        # Possible race-condition, so dirs must be created serially.
+        os.makedirs(dirname)
+
 def symlink(name, target):
     msg = '{} -> {}'.format(name, target)
     assert not os.path.lexists(name), msg
@@ -21,14 +26,18 @@ def symlink(name, target):
 def run(mapped_fn, fn_pattern):
     """
     Symlink targets will be relative to cwd.
-    fn_pattern == 'input_{}.txt' e.g.
+    For pattern, the word '{key}' will be substituted everywhere, e.g.
+        fn_pattern == 'top/{key}/input_{key}.txt'
     """
     mapped = deserialize(mapped_fn)
-    mapdir = os.path.dirname(os.path.normpath(mapped_fn))
+    mapdir = os.path.normpath(os.path.dirname(os.path.normpath(mapped_fn)))
     for key, val in mapped.iteritems():
         assert_exists(val)
-        symlink_name = fn_pattern.format(key)
-        target_name = os.path.relpath(os.path.join(mapdir, val))
+        symlink_name = fn_pattern.format(key=key)
+        outdir = os.path.normpath(os.path.dirname(symlink_name))
+        mkdir(outdir)
+        relmapdir = os.path.relpath(mapdir, outdir)
+        target_name = os.path.relpath(os.path.join(relmapdir, val))
         symlink(symlink_name, target_name)
 
 def parse_args(argv):

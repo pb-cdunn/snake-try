@@ -18,24 +18,26 @@ def snake_merge_dynamic(output_fn, input_fns, pattern):
 rule all:
     input: 'output/mapped_outputs.json'
 
-rule clean:
-    shell: 'rm input_* intermediate_* output.txt'
-
 rule merge:
     input: ancient(dynamic('parallel_outputs/{key}/intermediate_{key}.txt'))
     output: 'output/mapped_outputs.json'
     run:
-        snake_merge_dynamic(output[0], [str(i) for i in input], 'intermediate_{key}.txt')
+        snake_merge_dynamic(output[0], [str(i) for i in input], 'parallel_outputs/{key}/intermediate_{key}.txt')
 
 rule parallel:
-    input: 'input_{key}.txt'
-    output: 'intermediate_{key}.txt'
-    shell: 'cat {input} > {output} && sleep 1 && echo processed >> {output}'
+    input: 'parallel_inputs/{key}/input_{key}.txt'
+    output: 'parallel_outputs/{key}/intermediate_{key}.txt'
+    shell: '''
+mkdir -p parallel_outputs/{key}
+cat {input} > {output}
+sleep 1
+echo processed >> {output}
+'''
 
 rule split:
     input: 'mapped_inputs.json'
-    output: dynamic('input_{key}.txt')
-    shell: '../symlink_mapped.py --mapped={input} --fn-pattern="input_{{}}.txt"'
+    output: dynamic('parallel_inputs/{key}/input_{key}.txt')
+    shell: '../symlink_mapped.py --mapped={input} --fn-pattern="parallel_inputs/{{key}}/input_{{key}}.txt"'
 
 rule map_inputs:
     input: '../input.txt'
