@@ -4,17 +4,20 @@ rule all:
 rule clean:
     shell: 'rm input_* intermediate_* output.txt'
 
-rule map_outputs:
-    input: 'output.json'
-    output: 'mapped_outputs.json'
-    shell: '../dump_mapped_outputs.py --mapped={output} --unmapped={input} --fn-pattern="intermediate_{{n}}.txt"'
-
 rule merge:
     input: ancient(dynamic('intermediate_{n}.txt'))
-    output: 'output.json'
+    output: 'mapped_outputs.json'
     run:
+        outdir = os.path.normpath(os.path.dirname(output[0]))
+        re_dynamic = re.compile('intermediate_(\S).txt')
         fns = [str(i) for i in input]
-        ser = json.dumps(fns)
+        mapped = dict()
+        for fn in fns:
+            mo = re_dynamic.search(fn)
+            assert mo, '{!r} did not match {!r}'.format(fn, re_dynamic.pattern)
+            key = mo.group(1)
+            mapped[key] = os.path.relpath(fn, outdir)
+        ser = json.dumps(mapped)
         with open(output[0], 'w') as out:
             out.write('{}\n'.format(ser))
 
