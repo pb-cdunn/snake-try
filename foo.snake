@@ -28,7 +28,7 @@ rule parallel:
     input: 'parallel_inputs/{key}/input_{key}.txt'
     output: 'parallel_outputs/{key}/intermediate_{key}.txt'
     shell: '''
-mkdir -p parallel_outputs/{key}
+#mkdir -p $(dirname {output})
 cat {input} > {output}
 sleep 1
 echo processed >> {output}
