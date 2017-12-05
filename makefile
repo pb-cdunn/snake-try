@@ -6,7 +6,8 @@
 #  --keep-going
 #  --stats=stats.json # useful!
 #  --runtime-profile=prof.out # not useful
-EXTRA= --latency-wait=20 --restart-times=2 --notemp --keep-shadow
+LATENCY=20
+EXTRA= --latency-wait=0 --restart-times=2 --notemp --keep-shadow
 VERBOSE= --reason --printshellcmds --stats=stats.json # --verbose
 
 all: | work

@@ -15,10 +15,11 @@ rule parallel:
     shell: 'cat {input} > {output} && sleep 1 && echo processed >> {output}'
 
 rule split:
-    input: '../input.txt'
+    input: 'mapped.json'
     output: dynamic('input_{n}.txt')
-    run:
-        with open(input[0], 'r') as infile:
-            for n, line in enumerate(infile.readlines()):
-                with open('input_{}.txt'.format(n), 'w+') as outfile:
-                    outfile.write(line)
+    shell: '../symlink_mapped.py --mapped={input} --fn-pattern="input_{{}}.txt"'
+
+rule map:
+    input: '../input.txt'
+    output: 'mapped.json'
+    shell: '../dump_mapped.py --mapped={output} --input={input}'
