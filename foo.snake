@@ -1,3 +1,18 @@
+def snake_merge_dynamic(output_fn, input_fns, pattern):
+        """Assume '{key}' is the only wildcard in pattern.
+        """
+        re_dynamic = re.compile(pattern.replace('{key}', '(\S)'))
+        outdir = os.path.normpath(os.path.dirname(output_fn))
+        mapped = dict()
+        for fn in input_fns:
+            mo = re_dynamic.search(fn)
+            assert mo, '{!r} did not match {!r}'.format(fn, re_dynamic.pattern)
+            key = mo.group(1)
+            mapped[key] = os.path.relpath(fn, outdir)
+        ser = json.dumps(mapped) + '\n'
+        with open(output_fn, 'w') as out:
+            out.write(ser)
+
 rule all:
     input: 'mapped_outputs.json'
 
@@ -8,18 +23,7 @@ rule merge:
     input: ancient(dynamic('intermediate_{key}.txt'))
     output: 'mapped_outputs.json'
     run:
-        outdir = os.path.normpath(os.path.dirname(output[0]))
-        re_dynamic = re.compile('intermediate_{key}.txt'.replace('{key}', '(\S)'))
-        fns = [str(i) for i in input]
-        mapped = dict()
-        for fn in fns:
-            mo = re_dynamic.search(fn)
-            assert mo, '{!r} did not match {!r}'.format(fn, re_dynamic.pattern)
-            key = mo.group(1)
-            mapped[key] = os.path.relpath(fn, outdir)
-        ser = json.dumps(mapped)
-        with open(output[0], 'w') as out:
-            out.write('{}\n'.format(ser))
+        snake_merge_dynamic(output[0], [str(i) for i in input], 'intermediate_{key}.txt')
 
 rule parallel:
     input: 'input_{key}.txt'
