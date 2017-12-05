@@ -5,7 +5,7 @@ import sys
 
 def serialize(fn, obj):
     with open(fn, 'w') as ofs:
-        ofs.write(json.dumps(obj))
+        ofs.write(json.dumps(obj, indent=2, separators=(',', ': ')))
         ofs.write('\n')
 
 def run(mapped_fn, input_fn):

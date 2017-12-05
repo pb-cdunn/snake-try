@@ -9,7 +9,7 @@ def snake_merge_dynamic(output_fn, input_fns, pattern):
             assert mo, '{!r} did not match {!r}'.format(fn, re_dynamic.pattern)
             key = mo.group(1)
             mapped[key] = os.path.relpath(fn, outdir)
-        ser = json.dumps(mapped) + '\n'
+        ser = json.dumps(mapped, indent=2, separators=(',', ': ')) + '\n'
         with open(output_fn, 'w') as out:
             out.write(ser)
 
