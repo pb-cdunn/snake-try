@@ -20,11 +20,11 @@ def snake_merge_dynamic(output_fn, input_fns, pattern):
             out.write(ser)
 
 rule all:
-    input: 'output/special_merged_outputs.json'
+    input: 'merge/special_merged_outputs.json'
 
 rule merge:
     input: ancient(dynamic('parallel_outputs/{key}/intermediate_{key}.txt'))
-    output: 'output/special_merged_outputs.json'
+    output: 'merge/special_merged_outputs.json'
     run:
         snake_merge_dynamic(output[0], [str(i) for i in input], 'parallel_outputs/{key}/intermediate_{key}.txt')
 
