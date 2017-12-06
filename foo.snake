@@ -1,3 +1,6 @@
+#import json, os, re
+import collections
+
 def snake_merge_dynamic(output_fn, input_fns, pattern):
         """Assume '{key}' is the only wildcard in pattern.
         """
@@ -5,22 +8,23 @@ def snake_merge_dynamic(output_fn, input_fns, pattern):
         outdir = os.path.normpath(os.path.dirname(output_fn))
         if not os.path.isdir(outdir):
             os.makedirs(outdir)
-        mapped = dict()
+        data = collections.defaultdict(dict)
+        mapped = data['gathered']
         for fn in input_fns:
             mo = re_dynamic.search(fn)
             assert mo, '{!r} did not match {!r}'.format(fn, re_dynamic.pattern)
             key = mo.group(1)
             mapped[key] = os.path.relpath(fn, outdir)
-        ser = json.dumps(mapped, indent=2, separators=(',', ': ')) + '\n'
+        ser = json.dumps(data, indent=2, separators=(',', ': ')) + '\n'
         with open(output_fn, 'w') as out:
             out.write(ser)
 
 rule all:
-    input: 'output/mapped_outputs.json'
+    input: 'output/special_merged_outputs.json'
 
 rule merge:
     input: ancient(dynamic('parallel_outputs/{key}/intermediate_{key}.txt'))
-    output: 'output/mapped_outputs.json'
+    output: 'output/special_merged_outputs.json'
     run:
         snake_merge_dynamic(output[0], [str(i) for i in input], 'parallel_outputs/{key}/intermediate_{key}.txt')
 
@@ -31,7 +35,7 @@ rule parallel:
         reltopdir='../..'
     shell: '''
 set -vx
-outdir=$(dirname {output})
+outdir=$(dirname {output[0]})
 #mkdir -p ${{outdir}}
 cd ${{outdir}}
 
@@ -43,11 +47,22 @@ cd -
 '''
 
 rule split:
-    input: 'mapped_inputs.json'
-    output: dynamic('parallel_inputs/{key}/input_{key}.txt')
-    shell: '../symlink_mapped.py --mapped={input} --fn-pattern="parallel_inputs/{{key}}/input_{{key}}.txt"'
-
-rule map_inputs:
     input: '../input.txt'
-    output: 'mapped_inputs.json'
-    shell: '../dump_mapped_inputs.py --mapped={output} --input={input}'
+    output: 'split/special_split_inputs.json'
+    params:
+        reltopdir='..'
+    shell: '''
+set -vx
+outdir=$(dirname {output[0]})
+#mkdir -p ${{outdir}}
+cd ${{outdir}}
+
+../{params.reltopdir}/special_split_inputs.py --special-split={params.reltopdir}/{output} --input={params.reltopdir}/{input}
+
+cd -
+'''
+
+rule split_dynamic:
+    input: rules.split.output[0]
+    output: dynamic('parallel_inputs/{key}/input_{key}.txt')
+    shell: '../symlink_mapped.py --special-split={input} --fn-pattern="parallel_inputs/{{key}}/input_{{key}}.txt"'

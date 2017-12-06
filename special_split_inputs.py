@@ -8,7 +8,7 @@ def serialize(fn, obj):
         ofs.write(json.dumps(obj, indent=2, separators=(',', ': ')))
         ofs.write('\n')
 
-def run(mapped_fn, input_fn):
+def run(special_split_fn, input_fn):
     fn_pattern = 'mapped_input_{}.txt'
     with open(input_fn, 'r') as infile:
         mapped = dict()
@@ -17,18 +17,19 @@ def run(mapped_fn, input_fn):
             with open(fn, 'w') as outfile:
                 outfile.write(line)
             mapped[n] = fn
-    serialize(mapped_fn, mapped)
+    data = {'mapped_inputs': mapped}
+    serialize(special_split_fn, data)
 
 def parse_args(argv):
     description = """
-Dump "chunks" and write a file which records the new filenames, indexed by their original line-numbers.
+Split input into multiple inputs, and write a file which records the new filenames, indexed by their original line-numbers.
 """
     parser = argparse.ArgumentParser(
             description=description,
     )
     parser.add_argument(
-            '--mapped-fn', required=True,
-            help='Output: Serialized map of key to filename, relative to the directory of this file.')
+            '--special-split-fn', required=True,
+            help='Output: Serialized split-file (in our special format), where "mapped_inputs" is a map of key to filename, relative to the directory of this file.')
     parser.add_argument(
             '--input-fn', required=True,
             help='Input: File of numbers, one per line.')
