@@ -11,14 +11,17 @@ def serialize(fn, obj):
 def run(special_split_fn, input_fn):
     fn_pattern = 'mapped_input_{}.txt'
     with open(input_fn, 'r') as infile:
-        mapped = dict()
+        jobs = dict()
         for n, line in enumerate(infile.readlines()):
             fn = fn_pattern.format(n)
             with open(fn, 'w') as outfile:
                 outfile.write(line)
-            mapped[n] = fn
-    data = {'mapped_inputs': mapped}
-    serialize(special_split_fn, data)
+            job = dict(
+                input=[fn],
+                # skip output and params for now
+            )
+            jobs[n] = job
+    serialize(special_split_fn, jobs)
 
 def parse_args(argv):
     description = """

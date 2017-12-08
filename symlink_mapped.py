@@ -29,10 +29,11 @@ def run(special_split_fn, fn_pattern):
     For pattern, the word '{key}' will be substituted everywhere, e.g.
         fn_pattern == 'top/{key}/input_{key}.txt'
     """
-    special_split = deserialize(special_split_fn)
-    mapped = special_split['mapped_inputs']
+    jobs = deserialize(special_split_fn)
     mapdir = os.path.normpath(os.path.dirname(os.path.normpath(special_split_fn)))
-    for key, val in mapped.iteritems():
+    for key, job in jobs.iteritems():
+        assert 1 == len(job['input'])
+        val = job['input'][0]
         # val should be relative to the location of the special_split_fn.
         assert not os.path.isabs(val), 'mapped input filename {!r} must be relative (to serialzed file location {!r}'.format(
                 val, special_split_fn)
