@@ -1,19 +1,33 @@
 #import json, os, re
 
-def snake_merge_dynamic(output_fn, input_fns, pattern):
-        """Assume '{key}' is the only wildcard in pattern.
+def snake_merge_dynamic_dict(reldir, input_fns, pattern, wildcards):
+        """Assume each wildcard appears at most once in the pattern.
         """
-        re_dynamic = re.compile(pattern.replace('{key}', '(\S)'))
-        outdir = os.path.normpath(os.path.dirname(output_fn))
-        if not os.path.isdir(outdir):
-            os.makedirs(outdir)
-        mapped = dict()
+        for k in wildcards:
+            pattern = pattern.replace('{%s}' %k, '(?P<%s>\S)' %k)
+        re_dynamic = re.compile(pattern)
+        mapped = list()
         for fn in input_fns:
             mo = re_dynamic.search(fn)
             assert mo, '{!r} did not match {!r}'.format(fn, re_dynamic.pattern)
-            key = mo.group(1)
-            mapped[key] = os.path.relpath(fn, outdir)
-        ser = json.dumps(mapped, indent=2, separators=(',', ': ')) + '\n'
+            file_description = dict()
+            file_description['wildcards'] = dict(mo.groupdict())
+            file_description['fn'] = os.path.relpath(fn, reldir)
+            mapped.append(file_description)
+        return mapped
+
+def snake_merge_multi_dynamic(output_fn, dict_of_input_fns, dict_of_patterns, wildcards):
+        outdir = os.path.normpath(os.path.dirname(output_fn))
+        if not os.path.isdir(outdir):
+            os.makedirs(outdir)
+        assert list(sorted(dict_of_input_fns.keys())) == list(sorted(dict_of_patterns.keys()))
+        all_mapped = dict()
+        for i in dict_of_patterns.keys():
+            input_fns = dict_of_input_fns[i]
+            pattern = dict_of_patterns[i]
+            mapped = snake_merge_dynamic_dict(outdir, input_fns, pattern, wildcards)
+            all_mapped[i] = mapped
+        ser = json.dumps(all_mapped, indent=2, separators=(',', ': ')) + '\n'
         with open(output_fn, 'w') as out:
             out.write(ser)
 
@@ -21,14 +35,24 @@ rule all:
     input: 'merge/mapped_outputs.json'
 
 rule merge:
-    input: ancient(dynamic('parallel_outputs/{key}/intermediate_{key}.txt'))
+    input: go=ancient(dynamic('parallel_outputs/{key}/gintermediate_{key2}.txt')), fo=ancient(dynamic('parallel_outputs/{key}/intermediate_{key2}.txt'))
     output: 'merge/mapped_outputs.json'
     run:
-        snake_merge_dynamic(output[0], [str(i) for i in input], 'parallel_outputs/{key}/intermediate_{key}.txt')
+        snake_merge_multi_dynamic(output[0],
+            dict(
+              fo=[str(i) for i in input.fo],
+              go=[str(i) for i in input.go],
+            ),
+            dict(
+              fo='parallel_outputs/{key}/intermediate_{key2}.txt',
+              go='parallel_outputs/{key}/gintermediate_{key2}.txt',
+            ),
+            ['key', 'key2'] # all wildcards
+        )
 
 rule parallel:
-    input:  fi='parallel_inputs/{key}/input_{key}.txt', fum='../input.txt'
-    output: fo='parallel_outputs/{key}/intermediate_{key}.txt'
+    input:  gi='parallel_inputs/{key}/ginput_{key2}.txt', fi='parallel_inputs/{key}/input_{key2}.txt', fum='../input.txt'
+    output: go='parallel_outputs/{key}/gintermediate_{key2}.txt', fo='parallel_outputs/{key}/intermediate_{key2}.txt'
     params:
         reltopdir='../..'
     shell: '''
@@ -39,6 +63,7 @@ cd ${{outdir}}
 
 echo "fum={params.reltopdir}/{input.fum}"
 cat {params.reltopdir}/{input.fi} > {params.reltopdir}/{output.fo}
+cat {params.reltopdir}/{input.gi} > {params.reltopdir}/{output.go}
 sleep 1
 echo processed >> {params.reltopdir}/{output.fo}
 
@@ -63,5 +88,5 @@ cd -
 
 rule split_dynamic:
     input: rules.split.output[0]
-    output: dynamic('parallel_inputs/{key}/input_{key}.txt')
-    shell: '../symlink_mapped.py --special-split={input} --fn-pattern="parallel_inputs/{{key}}/input_{{key}}.txt"'
+    output: dynamic('parallel_inputs/{key}/ginput_{key2}.txt'), dynamic('parallel_inputs/{key}/input_{key2}.txt')
+    shell: '../symlink_mapped.py --special-split={input} fi="parallel_inputs/{{key}}/input_{{key}}.txt" gi="parallel_inputs/{{key}}/ginput_{{key}}.txt"'

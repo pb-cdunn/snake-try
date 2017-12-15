@@ -10,17 +10,27 @@ def serialize(fn, obj):
 
 def run(special_split_fn, input_fn):
     fn_pattern = 'mapped_input_{}.txt'
+    gfn_pattern = 'g' + fn_pattern
     with open(input_fn, 'r') as infile:
-        jobs = dict()
+        jobs = list()
         for n, line in enumerate(infile.readlines()):
             fn = fn_pattern.format(n)
             with open(fn, 'w') as outfile:
                 outfile.write(line)
+            gfn = gfn_pattern.format(n)
+            with open(gfn, 'w') as outfile:
+                outfile.write(line + 'g')
             job = dict(
-                input=[fn],
+                inputs=dict(
+                    fi=fn,
+                    gi=gfn,
+                ),
+                wildcards=dict(
+                    key=n,
+                ),
                 # skip output and params for now
             )
-            jobs[n] = job
+            jobs.append(job)
     serialize(special_split_fn, jobs)
 
 def parse_args(argv):
