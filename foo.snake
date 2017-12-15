@@ -27,8 +27,8 @@ rule merge:
         snake_merge_dynamic(output[0], [str(i) for i in input], 'parallel_outputs/{key}/intermediate_{key}.txt')
 
 rule parallel:
-    input: 'parallel_inputs/{key}/input_{key}.txt'
-    output: 'parallel_outputs/{key}/intermediate_{key}.txt'
+    input:  fi='parallel_inputs/{key}/input_{key}.txt', fum='../input.txt'
+    output: fo='parallel_outputs/{key}/intermediate_{key}.txt'
     params:
         reltopdir='../..'
     shell: '''
@@ -37,9 +37,10 @@ outdir=$(dirname {output[0]})
 #mkdir -p ${{outdir}}
 cd ${{outdir}}
 
-cat {params.reltopdir}/{input} > {params.reltopdir}/{output}
+echo "fum={params.reltopdir}/{input.fum}"
+cat {params.reltopdir}/{input.fi} > {params.reltopdir}/{output.fo}
 sleep 1
-echo processed >> {params.reltopdir}/{output}
+echo processed >> {params.reltopdir}/{output.fo}
 
 cd -
 '''
