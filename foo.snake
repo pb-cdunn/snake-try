@@ -27,7 +27,27 @@ def snake_merge_multi_dynamic(output_fn, dict_of_input_fns, dict_of_patterns, wi
             pattern = dict_of_patterns[i]
             mapped = snake_merge_dynamic_dict(outdir, input_fns, pattern, wildcards)
             all_mapped[i] = mapped
-        ser = json.dumps(all_mapped, indent=2, separators=(',', ': ')) + '\n'
+        all_grouped = dict()
+        for i, mapped in all_mapped.items():
+            print(i, mapped)
+            for file_description in mapped:
+                print(file_description)
+                print(file_description['wildcards'])
+                print(list(sorted(file_description['wildcards'].items())))
+                wildkey = ','.join('{}={}'.format(k,v) for k,v in sorted(file_description['wildcards'].items()))
+                if wildkey not in all_grouped:
+                    new_group = dict(
+                        wildcards=dict(file_description['wildcards']),
+                        fns=dict(),
+                    )
+                    all_grouped[wildkey] = new_group
+                group = all_grouped[wildkey]
+                wildcards = file_description['wildcards']
+                assert wildcards == group['wildcards'], '{!r} should match {!r} by snakemake convention'.format(
+                    wildcards, group['wildcards'])
+                fn = file_description['fn']
+                group['fns'][i] = fn
+        ser = json.dumps(all_grouped, indent=2, separators=(',', ': ')) + '\n'
         with open(output_fn, 'w') as out:
             out.write(ser)
 
