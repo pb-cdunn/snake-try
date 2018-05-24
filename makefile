@@ -16,7 +16,8 @@ summary:
 dry:
 	snakemake --dryrun --verbose -rs foo.snake
 work:
-	mkdir -p $@
+	mkdir -p work
+	ln -s ../data work/data
 clean:
 	rm -rf work/
 distclean:
