@@ -2,8 +2,8 @@
 
 rule a:
 	input:
-		"data/foo.txt"
+		foo="data/foo.txt"
 	output:
-		"a/bar.txt"
+		bar="a/bar.txt"
 	shell:
-		"cp {input} {output}"
+		"cp {input.foo} {output.bar}"
