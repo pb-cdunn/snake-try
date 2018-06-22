@@ -7,10 +7,13 @@
 #  --stats=stats.json # useful!
 #  --runtime-profile=prof.out # not useful
 EXTRA= --latency-wait=20 --restart-times=2 --notemp --keep-shadow
-VERBOSE= --reason --printshellcmds --stats=stats.json # --verbose
+#FAST=-j
+VERBOSE= --debug --reason --printshellcmds --stats=stats.json # --verbose
+S=snakemake
+#S=/Users/cdunn2001/Library/Python/3.6/bin/snap
 
 all: | work
-	cd work; snakemake -j -T ${VERBOSE} -s ../foo.snake
+	cd work; $S ${FAST} ${VERBOSE} -T -s ../foo.snake
 summary:
 	snakemake --detailed-summary -s foo.snake
 dry:

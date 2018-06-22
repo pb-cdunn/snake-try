@@ -1,5 +1,14 @@
 #import json, os, re
 
+# comment b
+rule b:
+	input:
+		bar="a/bar.txt"
+	output:
+		baz="b/baz.txt"
+	shell:
+		"cp {input.bar} {output.baz}"
+# comment a
 rule a:
 	input:
 		foo="data/foo.txt"
@@ -7,3 +16,4 @@ rule a:
 		bar="a/bar.txt"
 	shell:
 		"cp {input.foo} {output.bar}"
+# comment footer
