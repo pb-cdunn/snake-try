@@ -10,7 +10,7 @@ EXTRA= --latency-wait=20 --restart-times=2 --notemp --keep-shadow
 #FAST=-j
 VERBOSE= --debug --reason --printshellcmds --stats=stats.json # --verbose
 S=snakemake
-#S=/Users/cdunn2001/Library/Python/3.6/bin/snap
+S=/Users/cdunn2001/Library/Python/2.7/bin/snap
 
 all: | work
 	cd work; $S ${FAST} ${VERBOSE} -T -s ../foo.snake
